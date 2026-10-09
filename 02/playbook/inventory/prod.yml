@@ -1,0 +1,13 @@
+---
+clickhouse:
+  hosts:
+    centos7:
+      ansible_connection: docker
+      # ansible_port: 2222
+      # ansible_user: root
+vector:
+  hosts:
+    ubuntu:
+      ansible_host: 127.0.0.1
+      ansible_port: 2223
+      ansible_user: root

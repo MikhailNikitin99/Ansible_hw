@@ -1,0 +1,118 @@
+---
+- name: Install Vector
+  hosts: vector
+  become: true
+  vars:
+    vector_version: "0.58.0"
+    vector_config_dir: "/etc/vector"
+    vector_install_dir: "/usr/local/bin"
+  handlers:
+    - name: Restart Vector
+      ansible.builtin.shell:
+        cmd: "pkill -f vector || true && nohup {{ vector_install_dir }}/vector --config {{ vector_config_dir }}/vector.yaml > /dev/null 2>&1 &"
+      changed_when: true
+  tasks:
+    - name: Get Vector version
+      ansible.builtin.command: vector --version
+      register: is_installed
+      ignore_errors: true
+      changed_when: false
+
+    - name: Install Vector from tar
+      when: is_installed is failed
+      block:
+        - name: Download Vector
+          ansible.builtin.get_url:
+            url: "https://github.com/vectordotdev/vector/releases/download/v{{ vector_version }}/vector-{{ vector_version }}-x86_64-unknown-linux-musl.tar.gz"
+            dest: "/tmp/vector-{{ vector_version }}.tar.gz"
+            mode: "0644"
+
+        - name: Create temporary dir for extraction
+          ansible.builtin.file:
+            path: "/tmp/vector_extracted"
+            state: directory
+            mode: "0755"
+
+        - name: Unzip Vector package
+          ansible.builtin.unarchive:
+            src: "/tmp/vector-{{ vector_version }}.tar.gz"
+            dest: "/tmp/vector_extracted"
+            remote_src: true
+
+        - name: Install Vector bin
+          ansible.builtin.copy:
+            src: "/tmp/vector_extracted/vector-x86_64-unknown-linux-musl/bin/vector"
+            dest: "{{ vector_install_dir }}/vector"
+            mode: "0755"
+            remote_src: true
+
+        - name: Clean up temp files
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "tmp/vector-{{ vector_version }}.tar.gz"
+            - "tmp/vector/extracted"
+
+    - name: Create config dir
+      ansible.builtin.file:
+        path: "{{ vector_config_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Deploy Vector config from template
+      ansible.builtin.template:
+        src: templates/vector.yaml.j2
+        dest: "{{ vector_config_dir }}/vector.yaml"
+        mode: "0644"
+      notify: Restart Vector
+
+- name: Install Clickhouse
+  hosts: clickhouse
+  handlers:
+    - name: Start clickhouse service
+      ansible.builtin.command:
+        cmd: |
+          chown -R clickhouse:clickhouse /var/log/clickhouse-server
+          chown -R clickhouse:clickhouse /var/lib/clickhouse
+          chown -R clickhouse:clickhouse /var/run/clickhouse-server || true
+          runuser -u clickhouse -- /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml --pid_file=/var/run/clickhouse-server/clickhouse-server.pid --daemon
+      changed_when: true
+    - name: Wait for clickhouse to start
+      ansible.builtin.wait_for:
+        port: 9000
+        delay: 3
+        timeout: 15
+      listen: "Start clickhouse service"
+  tasks:
+    - name: Download Clickhouse distr packages
+      block:
+        - name: Get clickhouse distrib
+          ansible.builtin.get_url:
+            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
+            dest: "./{{ item }}-{{ clickhouse_version }}.rpm"
+            mode: "0644"
+          with_items: "{{ clickhouse_packages }}"
+      rescue:
+        - name: Get clickhouse distrib via fallback
+          ansible.builtin.get_url:
+            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
+            dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
+            mode: "0644"
+    - name: Install clickhouse packages
+      # become: true
+      ansible.builtin.yum:
+        name:
+          - clickhouse-common-static-{{ clickhouse_version }}.rpm
+          - clickhouse-client-{{ clickhouse_version }}.rpm
+          - clickhouse-server-{{ clickhouse_version }}.rpm
+      notify:
+        - Start clickhouse service
+        - Wait for clickhouse to start
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+    - name: Create database
+      ansible.builtin.command: "clickhouse-client -q 'create database logs;'"
+      register: create_db
+      failed_when: create_db.rc != 0 and create_db.rc != 82
+      changed_when: create_db.rc == 0
