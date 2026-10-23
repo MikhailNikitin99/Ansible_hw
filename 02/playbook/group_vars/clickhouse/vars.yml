@@ -4,6 +4,6 @@ vector_install_dir: "/usr/local/bin"
 vector_config_dir: "/etc/vector"
 clickhouse_version: "22.3.3.44"
 clickhouse_packages:
-  - clickhouse-client
-  - clickhouse-server
-  - clickhouse-common-static
+  - { name: clickhouse-common-static, arch: x86_64 }
+  - { name: clickhouse-client, arch: noarch }
+  - { name: clickhouse-server, arch: noarch }

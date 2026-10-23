@@ -1,7 +1,7 @@
 ---
 - name: Install Vector
   hosts: vector
-  become: true
+  #become: true
   vars:
     vector_version: "0.58.0"
     vector_config_dir: "/etc/vector"
@@ -85,27 +85,22 @@
         timeout: 15
       listen: "Start clickhouse service"
   tasks:
-    - name: Download Clickhouse distr packages
-      block:
-        - name: Get clickhouse distrib
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
-            dest: "./{{ item }}-{{ clickhouse_version }}.rpm"
-            mode: "0644"
-          with_items: "{{ clickhouse_packages }}"
-      rescue:
-        - name: Get clickhouse distrib via fallback
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
-            dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
-            mode: "0644"
+    - name: Download clickhouse distrib
+      ansible.builtin.get_url:
+        url: "https://packages.clickhouse.com/rpm/stable/{{ item.name }}-{{ clickhouse_version }}.{{ item.arch }}.rpm"
+        dest: "/tmp/{{ item.name }}-{{ clickhouse_version }}.rpm"
+        mode: "0644"
+      loop: "{{ clickhouse_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
+
     - name: Install clickhouse packages
-      # become: true
       ansible.builtin.yum:
-        name:
-          - clickhouse-common-static-{{ clickhouse_version }}.rpm
-          - clickhouse-client-{{ clickhouse_version }}.rpm
-          - clickhouse-server-{{ clickhouse_version }}.rpm
+        name: "/tmp/{{ item.name }}-{{ clickhouse_version }}.rpm"
+        state: present
+        disable_gpg_check: true
+        disablerepo: "*"
+      loop: "{{ clickhouse_packages }}"
       notify:
         - Start clickhouse service
         - Wait for clickhouse to start
