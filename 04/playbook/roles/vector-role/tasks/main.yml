@@ -32,9 +32,9 @@
       ansible.builtin.file:
           path: "{{ item }}"
           state: absent
-          loop:
-            - "tmp/vector-{{ vector_version }}.tar.gz"
-            - "tmp/vector/extracted"
+      loop:
+        - "/tmp/vector-{{ vector_version }}.tar.gz"
+        - "/tmp/vector/extracted"
 
   - name: Create config dir
     ansible.builtin.file:
@@ -46,4 +46,4 @@
       src: templates/vector.yaml.j2
       dest: "{{ vector_config_dir }}/vector.yaml"
       mode: "0644"
-      notify: Restart Vector
+    notify: Restart Vector

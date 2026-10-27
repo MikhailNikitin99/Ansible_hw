@@ -1,0 +1,4 @@
+---
+lighthouse_folder: "/var/www/Lighthouse"
+lighthouse_nginx_port: 85
+lighthouse_nginx_config_path: "/etc/nginx/conf.d/default.conf"

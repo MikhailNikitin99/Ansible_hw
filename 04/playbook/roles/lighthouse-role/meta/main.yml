@@ -1,6 +1,6 @@
 galaxy_info:
   author: Mikhail Nikitin
-  description: Lighthouse role for Ansble
+  description: Lighthouse role for Ansible
   company: Netology
 
   # If the issue tracker for your role is not on github, uncomment the
