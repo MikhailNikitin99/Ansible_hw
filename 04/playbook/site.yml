@@ -2,11 +2,33 @@
 - name: Install Clickhouse
   hosts: clickhouse
   roles:
+    - role: clickhouse
+      vars:
+        clickhouse_version: "22.3.3.44"
+        clickhouse_service: "clickhouse-server"
+        clickhouse_listen_host:
+          - "0.0.0.0"
+        clickhouse_dbs_custom:
+          - { name: "logs" }
+  tasks:
+    - name: Wait for Clickhouse
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ clickhouse_http_port | default(8123) }}"
+        timeout: 30
 
 - name: Install Vector
   hosts: vector
   roles:
+    - role: vector-role
 
 - name: Install Lighthouse
   hosts: lighthouse
+  become: true
   roles:
+    - role: lighthouse-role
+  post_tasks:
+    - name: Check Lighthouse is working
+      ansible.builtin.uri:
+        url: "http://localhost:{{ lighthouse_nginx_port | default(85) }}/"
+        status_code: 200
