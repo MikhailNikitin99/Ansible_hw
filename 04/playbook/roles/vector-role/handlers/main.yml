@@ -1,5 +1,0 @@
----
-- name: Restart Vector
-  ansible.builtin.shell:
-    cmd: "pkill -f vector || true && nohup {{ vector_install_dir }}/vector --config {{ vector_config_dir }}/vector.yaml > /dev/null 2>&1 &"
-  changed_when: true
