@@ -1,0 +1,11 @@
+server {
+    listen {{ lighthouse_nginx_port }} default_server;
+    server_name _;
+
+    root {{ lighthouse_folder }};
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

@@ -1,0 +1,4 @@
+---
+vector_install_dir: "/usr/local/bin"
+vector_config_dir: "/etc/vector"
+vector_version: "0.58.0"

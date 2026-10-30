@@ -1,0 +1,27 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Create container
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        hostname: "{{ item.name }}"
+        image: "{{ item.image }}"
+        state: started
+        recreate: false
+        command: "{{ item.command | default(omit) }}"
+        privileged: "{{ item.privileged | default(omit) }}"
+        volumes: "{{ item.volumes | default(omit) }}"
+        capabilities: "{{ item.capabilities | default(omit) }}"
+        cgroupns_mode: "{{ item.cgroupns_mode | default(omit) }}"
+        tmpfs: "{{ item.tmpfs | default(omit) }}"
+      loop: "{{ molecule_yml.platforms }}"
+
+    - name: Add container to inventory
+      ansible.builtin.add_host:
+        name: "{{ item.name }}"
+        ansible_connection: community.docker.docker
+        groups: molecule
+      loop: "{{ molecule_yml.platforms }}"

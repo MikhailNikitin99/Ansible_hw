@@ -1,0 +1,79 @@
+---
+# Dependency management (download roles/collections)
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: ubuntu
+    image: cr.yandex/mirror/ubuntu:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroup_mode: host
+    command: "sleep infinity"
+    tmpfs:
+      - /run
+      - /tmp
+  - name: oraclelinux8
+    image: ghcr.io/oracle/oraclelinux:8
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroup_mode: host
+    command: "sleep infinity"
+    tmpfs:
+     - /run
+     - /tmp
+    ansible_python_interpreter: /usr/bin/python3.9
+
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
+
+verifier:
+  name: ansible
+ansible:
+  cfg:
+    defaults:
+      host_key_checking: false
+      deprecation_warnings: false
+      verbosity: 1
+    ssh_connection:
+      pipelining: true
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+  executor:
+    backend: ansible-playbook
+    args:
+      ansible_playbook:
+        - --diff
+  playbooks:
+    create: create.yml
+    converge: converge.yml
+    destroy: destroy.yml
+    prepare: prepare.yml
+    verify: verify.yml
+
+scenario:
+  name: test
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy
+
+lint: |
+    set -e
+    yamllint .
+    ansible-lint
