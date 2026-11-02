@@ -1,5 +1,4 @@
 ---
-# Dependency management (download roles/collections)
 dependency:
   name: galaxy
 
@@ -8,27 +7,31 @@ driver:
 
 platforms:
   - name: ubuntu
-    image: cr.yandex/mirror/ubuntu:latest
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
     pre_build_image: true
     privileged: true
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    cgroup_mode: host
-    command: "sleep infinity"
+    cgroupns_mode: host
+    override_command: false
+    capabilities:
+      - SYS_ADMIN
     tmpfs:
       - /run
       - /tmp
   - name: oraclelinux8
-    image: ghcr.io/oracle/oraclelinux:8
+    image: mpaivabarbosa/molecule-systemd-oraclelinux:8
     pre_build_image: true
     privileged: true
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    cgroup_mode: host
-    command: "sleep infinity"
+    cgroupns_mode: host
+    override_commands: false
+    capabilities:
+      - SYS_ADMIN
     tmpfs:
-     - /run
-     - /tmp
+      - /run
+      - /tmp
     ansible_python_interpreter: /usr/bin/python3.9
 
 provisioner:
@@ -72,8 +75,3 @@ scenario:
     - idempotence
     - verify
     - destroy
-
-lint: |
-    set -e
-    yamllint .
-    ansible-lint

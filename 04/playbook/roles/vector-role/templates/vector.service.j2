@@ -1,0 +1,14 @@
+[Unit]
+Description=Vector
+After=network-online.target
+Requires=network-online.target
+
+[Service]
+User=root
+Group=root
+ExecStart={{ vector_install_dir }}/vector --config {{ vector_config_dir }}/vector.yaml
+Restart=always
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

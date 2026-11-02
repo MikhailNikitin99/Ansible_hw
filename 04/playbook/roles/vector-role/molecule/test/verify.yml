@@ -1,12 +1,12 @@
 ---
-# Purpose: assert that the instance really ended up in the expected state.
-# Molecule calls this playbook with `molecule verify`.
 - name: Verify
   hosts: all
-  gather_facts: false # Quicker, if you do not need facts
+  gather_facts: false
   tasks:
     - name: Check if Vector is running
-      ansible.builtin.command: pgrep vector
+      ansible.builtin.service:
+        name: vector
+        state: started
+      check_mode: true
       register: result
-      changed_when: false
-      failed_when: result.rc != 0
+      failed_when: result.changed

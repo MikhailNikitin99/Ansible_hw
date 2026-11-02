@@ -1,12 +1,12 @@
 ---
-  - name: Get Vector version
-    ansible.builtin.command: vector --version
-    register: is_installed
-    ignore_errors: true
-    changed_when: false
-  - name: Install Vector from tar
-    when: is_installed is failed
-    block:
+- name: Get Vector version
+  ansible.builtin.command: vector --version
+  register: is_installed
+  ignore_errors: true
+  changed_when: false
+- name: Install Vector from tar
+  when: is_installed is failed
+  block:
     - name: Download Vector
       ansible.builtin.get_url:
         url: "https://github.com/vectordotdev/vector/releases/download/v{{ vector_version }}/vector-{{ vector_version }}-x86_64-unknown-linux-musl.tar.gz"
@@ -19,9 +19,9 @@
         mode: "0755"
     - name: Unzip Vector package
       ansible.builtin.unarchive:
-          src: "/tmp/vector-{{ vector_version }}.tar.gz"
-          dest: "/tmp/vector_extracted"
-          remote_src: true
+        src: "/tmp/vector-{{ vector_version }}.tar.gz"
+        dest: "/tmp/vector_extracted"
+        remote_src: true
     - name: Install Vector bin
       ansible.builtin.copy:
         src: "/tmp/vector_extracted/vector-x86_64-unknown-linux-musl/bin/vector"
@@ -30,20 +30,28 @@
         remote_src: true
     - name: Clean up temp files
       ansible.builtin.file:
-          path: "{{ item }}"
-          state: absent
+        path: "{{ item }}"
+        state: absent
       loop:
         - "/tmp/vector-{{ vector_version }}.tar.gz"
         - "/tmp/vector/extracted"
 
-  - name: Create config dir
-    ansible.builtin.file:
-      path: "{{ vector_config_dir }}"
-      state: directory
-      mode: "0755"
-  - name: Deploy Vector config from template
-    ansible.builtin.template:
-      src: templates/vector.yaml.j2
-      dest: "{{ vector_config_dir }}/vector.yaml"
-      mode: "0644"
-    notify: Restart Vector
+- name: Create config dir
+  ansible.builtin.file:
+    path: "{{ vector_config_dir }}"
+    state: directory
+    mode: "0755"
+- name: Deploy Vector config from template
+  ansible.builtin.template:
+    src: templates/vector.yaml.j2
+    dest: "{{ vector_config_dir }}/vector.yaml"
+    mode: "0644"
+- name: Deploy Vector service from template
+  ansible.builtin.template:
+    src: templates/vector.service.j2
+    dest: "/etc/systemd/system/vector.service"
+    mode: "0644"
+  notify: Restart Vector
+- name: Reload Vector daemon
+  ansible.builtin.systemd:
+    daemon_reload: true

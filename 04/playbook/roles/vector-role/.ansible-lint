@@ -1,0 +1,9 @@
+---
+mock_roles:
+  - vector-role
+exclude_paths:
+  - .venv/
+  - molecule/test/
+  - .git/
+  - .ansible-lint
+  - .yamllint
