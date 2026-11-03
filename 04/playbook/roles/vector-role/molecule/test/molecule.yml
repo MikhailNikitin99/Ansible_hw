@@ -15,11 +15,6 @@ platforms:
     cgroupns_mode: host
     override_command: false
     systemd: true
-    # capabilities:
-    #   - SYS_ADMIN
-    # tmpfs:
-    #   - /run
-    #   - /tmp
   - name: oraclelinux8
     image: mpaivabarbosa/molecule-systemd-oraclelinux:8
     pre_build_image: true
@@ -29,12 +24,6 @@ platforms:
     cgroupns_mode: host
     override_commands: false
     systemd: true
-    # capabilities:
-    #   - SYS_ADMIN
-    # tmpfs:
-    #   - /run
-    #   - /tmp
-    # ansible_python_interpreter: /usr/bin/python3.9
 
 provisioner:
   name: ansible
