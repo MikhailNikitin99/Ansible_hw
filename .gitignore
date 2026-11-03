@@ -1,1 +1,4 @@
-/roles/vector-role/.venv/
+.venv/
+tox-requirements.txt
+.tox
+.ansible

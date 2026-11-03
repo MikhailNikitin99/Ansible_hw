@@ -8,6 +8,8 @@
           if command -v apt-get >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; then
             apt-get update && apt-get install -y python3 ca-certificates
           fi
+      args:
+        executable: /bin/sh
       changed_when: false
 
     - name: Install Python 3 on Oracle linux
@@ -15,4 +17,6 @@
           if command -v dnf >/dev/null 2>&1; then
             dnf module enable -y python39 && dnf module install -y python39
           fi
+      args:
+        executable: /bin/sh
       changed_when: false

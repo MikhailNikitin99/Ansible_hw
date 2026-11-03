@@ -5,8 +5,8 @@
   gather_facts: false
   tasks:
     - name: Destroy containers
-      community.docker.docker_container:
+      containers.podman.podman_container:
         name: "{{ item.name }}"
         state: absent
-        force_kill: true
+        # force: true
       loop: "{{ molecule_yml.platforms }}"

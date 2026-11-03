@@ -3,7 +3,7 @@ dependency:
   name: galaxy
 
 driver:
-  name: docker
+  name: podman
 
 platforms:
   - name: ubuntu
@@ -14,11 +14,12 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     cgroupns_mode: host
     override_command: false
-    capabilities:
-      - SYS_ADMIN
-    tmpfs:
-      - /run
-      - /tmp
+    systemd: true
+    # capabilities:
+    #   - SYS_ADMIN
+    # tmpfs:
+    #   - /run
+    #   - /tmp
   - name: oraclelinux8
     image: mpaivabarbosa/molecule-systemd-oraclelinux:8
     pre_build_image: true
@@ -27,42 +28,61 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     cgroupns_mode: host
     override_commands: false
-    capabilities:
-      - SYS_ADMIN
-    tmpfs:
-      - /run
-      - /tmp
-    ansible_python_interpreter: /usr/bin/python3.9
+    systemd: true
+    # capabilities:
+    #   - SYS_ADMIN
+    # tmpfs:
+    #   - /run
+    #   - /tmp
+    # ansible_python_interpreter: /usr/bin/python3.9
 
 provisioner:
   name: ansible
   env:
     ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
-
-verifier:
-  name: ansible
-ansible:
-  cfg:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+  config_options:
     defaults:
       host_key_checking: false
       deprecation_warnings: false
       verbosity: 1
     ssh_connection:
       pipelining: true
-  env:
-    ANSIBLE_FORCE_COLOR: "1"
-    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
-  executor:
-    backend: ansible-playbook
-    args:
-      ansible_playbook:
-        - --diff
+  options:
+    diff: true
   playbooks:
     create: create.yml
     converge: converge.yml
     destroy: destroy.yml
     prepare: prepare.yml
     verify: verify.yml
+verifier:
+  name: ansible
+
+# Newer version of molecule
+# ansible:
+#   cfg:
+#     defaults:
+#       host_key_checking: false
+#       deprecation_warnings: false
+#       verbosity: 1
+#     ssh_connection:
+#       pipelining: true
+#   env:
+#     ANSIBLE_FORCE_COLOR: "1"
+#     ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+#   executor:
+#     backend: ansible-playbook
+#     args:
+#       ansible_playbook:
+#         - --diff
+#   playbooks:
+#     create: create.yml
+#     converge: converge.yml
+#     destroy: destroy.yml
+#     prepare: prepare.yml
+#     verify: verify.yml
 
 scenario:
   name: test
