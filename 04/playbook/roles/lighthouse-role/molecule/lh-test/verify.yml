@@ -1,0 +1,19 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if Nginx is running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+      check_mode: true
+      register: result
+      failed_when: result.changed
+    - name: Check if Lighthouse is running
+      # ansible.builtin.service:
+      #   name: lighthouse
+      #   state: started
+      # check_mode: true
+      # register: result
+      # failed_when: result.changed

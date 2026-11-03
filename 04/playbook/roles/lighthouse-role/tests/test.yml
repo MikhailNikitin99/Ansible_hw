@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Some tests
+  hosts: localhost
   remote_user: root
   roles:
     - lighthouse-role

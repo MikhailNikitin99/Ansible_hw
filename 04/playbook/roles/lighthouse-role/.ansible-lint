@@ -1,0 +1,9 @@
+---
+mock_roles:
+  - lighthouse-role
+exclude_paths:
+  - .venv/
+  - molecule/lh-test/
+  - .git/
+  - .ansible-lint
+  - .yamllint
