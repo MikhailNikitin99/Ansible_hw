@@ -2,6 +2,8 @@
 - name: Verify
   hosts: all
   gather_facts: false
+  vars:
+    lighthouse_nginx_port: 85
   tasks:
     - name: Check if Nginx is running
       ansible.builtin.service:
@@ -11,9 +13,8 @@
       register: result
       failed_when: result.changed
     - name: Check if Lighthouse is running
-      # ansible.builtin.service:
-      #   name: lighthouse
-      #   state: started
-      # check_mode: true
-      # register: result
-      # failed_when: result.changed
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ lighthouse_nginx_port }}/"
+        return_content: true
+      register: lighthouse_site
+      failed_when: lighthouse_site.status != 200
