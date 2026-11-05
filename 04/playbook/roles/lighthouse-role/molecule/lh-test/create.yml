@@ -5,7 +5,7 @@
   gather_facts: false
   tasks:
     - name: Create container
-      community.docker.docker_container:
+      containers.podman.podman_container:
         name: "{{ item.name }}"
         hostname: "{{ item.name }}"
         image: "{{ item.image }}"
@@ -15,7 +15,7 @@
         privileged: "{{ item.privileged | default(omit) }}"
         volumes: "{{ item.volumes | default(omit) }}"
         capabilities: "{{ item.capabilities | default(omit) }}"
-        cgroupns_mode: "{{ item.cgroupns_mode | default(omit) }}"
+        cgroupns: "{{ item.cgroupns_mode | default(omit) }}"
         tmpfs: "{{ item.tmpfs | default(omit) }}"
       loop: "{{ molecule_yml.platforms }}"
 
@@ -26,6 +26,6 @@
     - name: Add container to inventory
       ansible.builtin.add_host:
         name: "{{ item.name }}"
-        ansible_connection: community.docker.docker
+        ansible_connection: containers.podman.podman
         groups: molecule
       loop: "{{ molecule_yml.platforms }}"

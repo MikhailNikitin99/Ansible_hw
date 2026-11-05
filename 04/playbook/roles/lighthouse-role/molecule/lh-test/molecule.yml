@@ -3,7 +3,7 @@ dependency:
   name: galaxy
 
 driver:
-  name: docker
+  name: podman
 
 platforms:
   - name: ubuntu
@@ -84,7 +84,7 @@ verifier:
 #     verify: verify.yml
 
 scenario:
-  name: test
+  name: lh-test
   test_sequence:
     - destroy
     - syntax
